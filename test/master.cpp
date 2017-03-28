@@ -1,9 +1,66 @@
 #include "gtest/gtest.h"
 #include "lib/master.hpp"
 
+#include <string>
 #include <set>
 
 using namespace ::testing;
+
+class Abs {
+    public:
+        virtual ~Abs() {};
+        virtual std::string abs() = 0;
+};
+
+class Abs1: public Abs {
+    public:
+        virtual std::string abs() {
+            return std::string("abs1");
+        }
+};
+
+class Abs2: public Abs {
+    public:
+        virtual std::string abs() {
+            return std::string("abs2");
+        }
+};
+
+class Abs3: public Abs {
+    public:
+        virtual std::string abs() {
+            return std::string("abs3");
+        }
+};
+
+TEST(Master, InitArbitaryClasses) {
+    auto master = Master();
+    master.push(Abs1()).push(Abs2()).push(Abs3());
+    bool is1 = false;
+    bool is2 = false;
+    bool is3 = false;
+
+    const auto items_any = master.items_by(Master::DEFAULT_WEIGHT);
+
+    for (const auto& any : items_any) {
+        const auto& any_type = any.type();
+        if (typeid(Abs1) == any_type && !is1) {
+            is1 = true;
+            ASSERT_EQ(any.value<Abs1>().abs(), Abs1().abs());
+        }
+        else if (typeid(Abs2) == any_type && !is2) {
+            is2 = true;
+            ASSERT_EQ(any.value<Abs2>().abs(), Abs2().abs());
+        }
+        else if (typeid(Abs3) == any_type && !is3) {
+            is3 = true;
+            ASSERT_EQ(any.value<Abs3>().abs(), Abs3().abs());
+        }
+        else {
+            FAIL();
+        }
+    }
+}
 
 TEST(Master, InitDefault) {
     auto master = Master();
